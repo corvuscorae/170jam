@@ -7,8 +7,7 @@ local day = 0;
 local savings = 0; -- math.random(50,5000)  -- start with random amount of currency?
 local pay = 100;    -- can also randomize amount of currency that is set aside in savings
 
-local miles = 0;
-local rate = 0.5;
+local dailyMileage = 100;
 
 function love.load()
     print(car.engine.lifespan)
@@ -35,20 +34,21 @@ function love.load()
 
     love.window.setMode(screen.width, screen.height) -- wider for split panel
 
+    -- init car parts health
+    for name,part in pairs(car) do
+        part.health = part.lifespan
+    end
 end
 
 function love.draw()
-    miles = miles + math.random(0,rate);
-    -- DEBUG: print(miles);
-
-    handleTime();
+    local miles = drive();
 
     drawBG();
     local col = 0;
     local row = 0;
 
     for name,part in pairs(car) do
-        local health = getHealth(part);
+        local health = getHealth(part, toInt(miles));
 
         col = col + 1;
         if col > 4 then 
@@ -88,23 +88,27 @@ function drawBG()
 end
 
 -- TIME HANDLING (pay day)
-function handleTime()
-    time = time + 0.25
+function drive()
+    local miles = 0;
+    time = time + 1
     if time % 24 == 0 then
         day = day + 1;
 
         if day % 14 == 0 then
             savings = savings + pay;
         end
+        miles = miles + math.random(0,dailyMileage);
+
         -- DEBUG: 
         print(day, miles, savings)
     end
+
+    return miles;
 end
 
 -- CALCULATE DECAY
 function getDecay(part)
     local decay;
-    --[[
     if part.exponential == true then 
             -- DEBUG: print(tostring(i) .. ": EXP")
             -- exponential growth = initial value * (1 + rate) ^ time
@@ -115,27 +119,24 @@ function getDecay(part)
             -- DEBUG: print(tostring(i) .. ": NON-EXP")
             -- TODO: LEFT OFF HERE
             -- implement non-exponential health degradation
-            decay = 1 / part.lifespan;
-            print("decay: " .. tostring(decay));
+            decay = miles * (1 / part.lifespan);
     end
-    ]]
-    decay = 1 / part.lifespan;
 
     -- DEBUG: 
     return decay;
 end
 
 -- UPDATE HEALTH
-function getHealth(part)
+function getHealth(part, miles)
     local health = 0;
-    local decay = getDecay(part);
 
+    --[[
     if type(part.health) == "table" then
         -- TODO: include some randomization so sub parts dont decay at 
         --      the exact same rate?
         local n = 0;
         for i,atr in pairs(part.health) do
-            atr = 100 - decay;
+            atr = 100 - miles;
             if atr < 0 then atr = 0 end
             --  DEBUG: print(atr);
             health = health + atr;
@@ -143,11 +144,16 @@ function getHealth(part)
         end
         health = health / n;  -- get avg health
     else
-        part.health = part.health - decay;
+        part.health = part.health - miles;
         if part.health < 0 then part.health = 0 end
         -- DEBUG: print(part.health);
         health = part.health;
     end
+    ]]
+
+    part.health = part.health - miles;
+    if part.health < 0 then part.health = 0 end
+    health = part.health;
     
     return health;
 end
