@@ -11,6 +11,8 @@ local maxSaved = 100;    -- can also randomize amount of currency that is set as
 
 local dailyMileage = 100;
 
+local criticalRepairs = {};
+
 function love.load()
     print(Car.engine.lifespan)
     -- graphics
@@ -57,23 +59,56 @@ function love.load()
 end
 
 function love.draw()
-    local miles = drive();
-
     drawBG();
+    local miles;
 
+    if #criticalRepairs > 0 then 
+        -- display system failure text
+        love.graphics.setFont(love.graphics.newFont(64));
+        love.graphics.setColor(colors.text);
+        love.graphics.print("BROKE DOWN :(", 40, screen.height / 2)
+        love.graphics.setFont(font);
+        miles = 0;
+    else
+        miles = drive();
+    end
 
     for name,part in pairs(Car) do
-        local health = getHealth(part, toInt(miles));
-        local healthPercentage = (health / part.lifespan) * 100;
-        part.entity:setHealth(health);
-        part.entity:setColor(healthPercentage);
-        part.entity:draw();
-        --[[
-        love.graphics.setColor(colors.text);
-        love.graphics.print(name, x, y)
-        love.graphics.print(health, x, y+20)
-        ]]
+            local health = getHealth(part, toInt(miles));
+            local healthPercentage = (health / part.lifespan) * 100;
+            part.entity:setHealth(health);
+            part.entity:setColor(healthPercentage);
+            part.entity:draw();
+
+            if part.health == 0 
+                and part.critical == true 
+                and indexOf(criticalRepairs, name) == nil 
+                then 
+                    table.insert(criticalRepairs, name);
+            end
     end
+end
+
+function love.mousepressed(x, y)
+    for name,part in pairs(Car) do
+        if inRegion(x, y, part.entity:getRegion()) then
+            -- DEBUG: print(x, y, name)
+            -- TEMP: just restoring to original full health for now
+            part.health = part.lifespan;
+            local i = indexOf(criticalRepairs, name);
+            print(#criticalRepairs)
+            if i ~= nil then
+                table.remove(criticalRepairs, i);
+            end
+            print(#criticalRepairs)
+        end
+    end
+end
+
+function inRegion(x, y, region)
+    if x < region.min.x or x > region.max.x then return false end
+    if y < region.min.y or y > region.max.y then return false end
+    return true;
 end
 
 function toInt(num)
@@ -168,3 +203,11 @@ function getHealth(part, miles)
     return health;
 end
 
+function indexOf(tbl, value)
+    for i, v in ipairs(tbl) do
+        if v == value then
+            return i
+        end
+    end
+    return nil  
+end

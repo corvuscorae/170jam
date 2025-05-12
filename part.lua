@@ -40,6 +40,19 @@ function Part:setHealth(amt)
     self.health = amt;
 end
 
+function Part:getRegion()
+    return {
+        min = {
+            x = self.x,
+            y = self.y
+        },
+        max = {
+            x = self.x + self.width,
+            y = self.y + self.height
+        }
+    }
+end
+
 function Part:draw()
     -- Set color and draw rectangle
     love.graphics.setColor(self.color)
