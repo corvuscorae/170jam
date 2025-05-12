@@ -10,11 +10,11 @@ local savings = 0; -- math.random(50,5000)  -- start with random amount of curre
 local maxSaved = 100;    -- can also randomize amount of currency that is set aside in savings
 
 local dailyMileage = 100;
+local totalMiles = 0;
 
 local criticalRepairs = {};
 
 function love.load()
-    print(Car.engine.lifespan)
     -- graphics
     screen = {
         width = 1000,
@@ -94,13 +94,12 @@ function love.mousepressed(x, y)
         if inRegion(x, y, part.entity:getRegion()) then
             -- DEBUG: print(x, y, name)
             -- TEMP: just restoring to original full health for now
+            -- TODO: make part health restoration have a cost (currency)
             part.health = part.lifespan;
             local i = indexOf(criticalRepairs, name);
-            print(#criticalRepairs)
             if i ~= nil then
                 table.remove(criticalRepairs, i);
             end
-            print(#criticalRepairs)
         end
     end
 end
@@ -130,6 +129,23 @@ function drawBG()
     -- bottom row:
     love.graphics.setColor(colors.info)
     love.graphics.rectangle("fill", 0, screen.height - screen.height/5, screen.width, screen.height/5)
+
+    -- DEBUG BOX:
+    local debugBox = {
+        x = screen.width - 250,
+        y = screen.height/5 + 10,
+        w = 250,
+        h = 300,
+        pad = 10;
+    }
+    love.graphics.setColor({0.07,0.07,0.07});
+    love.graphics.rectangle("fill", debugBox.x, debugBox.y, debugBox.w, debugBox.h)
+    love.graphics.setColor(colors.text);
+    love.graphics.printf("days elapsed: " .. tostring(day), 
+        debugBox.x + debugBox.pad, debugBox.y + debugBox.pad, debugBox.w - debugBox.pad);
+    love.graphics.printf("miles driven: " .. tostring(totalMiles), 
+        debugBox.x + debugBox.pad, debugBox.y + debugBox.pad * 3, debugBox.w - debugBox.pad);
+    
 end
 
 -- TIME HANDLING (pay day)
@@ -147,7 +163,7 @@ function drive()
         -- DEBUG: 
         print(day, miles, savings)
     end
-
+    totalMiles = totalMiles + miles;
     return miles;
 end
 
@@ -162,8 +178,6 @@ function getDecay(part)
             decay = (decay - 1) * 100;
         else
             -- DEBUG: print(tostring(i) .. ": NON-EXP")
-            -- TODO: LEFT OFF HERE
-            -- implement non-exponential health degradation
             decay = miles * (1 / part.lifespan);
     end
 
@@ -174,27 +188,6 @@ end
 -- UPDATE HEALTH
 function getHealth(part, miles)
     local health = 0;
-
-    --[[
-    if type(part.health) == "table" then
-        -- TODO: include some randomization so sub parts dont decay at 
-        --      the exact same rate?
-        local n = 0;
-        for i,atr in pairs(part.health) do
-            atr = 100 - miles;
-            if atr < 0 then atr = 0 end
-            --  DEBUG: print(atr);
-            health = health + atr;
-            n = n + 1;
-        end
-        health = health / n;  -- get avg health
-    else
-        part.health = part.health - miles;
-        if part.health < 0 then part.health = 0 end
-        -- DEBUG: print(part.health);
-        health = part.health;
-    end
-    ]]
 
     part.health = part.health - miles;
     if part.health < 0 then part.health = 0 end
