@@ -80,6 +80,10 @@ function love.draw()
             part.entity:setColor(healthPercentage);
             part.entity:draw();
 
+            if part.autofix == true and part.health < 60 then
+                fixPart(part, name);
+            end
+
             if part.health == 0 
                 and part.critical == true 
                 and indexOf(criticalRepairs, name) == nil 
@@ -89,17 +93,20 @@ function love.draw()
     end
 end
 
-function love.mousepressed(x, y)
+function love.mousepressed(x, y, button)
+    print(button)
     for name,part in pairs(Car) do
         if inRegion(x, y, part.entity:getRegion()) then
-            -- DEBUG: print(x, y, name)
-            -- TEMP: just restoring to original full health for now
-            -- TODO: make part health restoration have a cost (currency)
-            part.health = part.lifespan;
-            local i = indexOf(criticalRepairs, name);
-            if i ~= nil then
-                table.remove(criticalRepairs, i);
+            -- LEFT-CLICK: RESTORE HEALTH
+            if button == 1 then
+                fixPart(part);                
+            -- RIGHT-CLICK: AUTOMATE/UN-AUTOMATE REPAIRS
+            elseif button == 2 then
+                if part.autofix == false then part.autofix = true
+                else part.autofix = false end
+                part.entity.autofix = part.autofix;
             end
+        
         end
     end
 end
@@ -203,4 +210,16 @@ function indexOf(tbl, value)
         end
     end
     return nil  
+end
+
+function fixPart(part, name)
+    -- TEMP: just restoring to original full health for now
+    -- TODO: make part health restoration have a cost (currency)
+
+    part.health = part.lifespan;
+
+    local i = indexOf(criticalRepairs, name);
+    if i ~= nil then
+        table.remove(criticalRepairs, i);
+    end
 end

@@ -14,6 +14,7 @@ function Part:new(name, health, x, y, w, h)
     instance.health = health;
     instance.color = self:getColor(health)
     instance.speed = 0;
+    instance.autofix = false;
     
     return instance
 end
@@ -62,7 +63,12 @@ function Part:draw()
     -- Draw entity type
     love.graphics.setColor(colors.text)
     love.graphics.print(self.name, self.x, self.y);
+
+    -- debug text
     love.graphics.print(self.health, self.x, self.y + 20);
+    if self.autofix == true then
+        love.graphics.print("auto fix", self.x, self.y + self.height - 20);
+    end
     
     -- Reset color
     love.graphics.setColor(1, 1, 1)
