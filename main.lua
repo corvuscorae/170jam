@@ -1,16 +1,18 @@
-local car = require("parts")
+local Entity = require("entity");
+local Car = require("car");
+local Part = require("part");
 
 local time = 0;
 local day = 0;
 
 -- TODO: implement currency system
 local savings = 0; -- math.random(50,5000)  -- start with random amount of currency?
-local pay = 100;    -- can also randomize amount of currency that is set aside in savings
+local maxSaved = 100;    -- can also randomize amount of currency that is set aside in savings
 
 local dailyMileage = 100;
 
 function love.load()
-    print(car.engine.lifespan)
+    print(Car.engine.lifespan)
     -- graphics
     screen = {
         width = 1000,
@@ -34,21 +36,11 @@ function love.load()
 
     love.window.setMode(screen.width, screen.height) -- wider for split panel
 
-    -- init car parts health
-    for name,part in pairs(car) do
-        part.health = part.lifespan
-    end
-end
-
-function love.draw()
-    local miles = drive();
-
-    drawBG();
+    -- init car parts health + entities
     local col = 0;
     local row = 0;
-
-    for name,part in pairs(car) do
-        local health = getHealth(part, toInt(miles));
+    for name,part in pairs(Car) do
+        part.health = part.lifespan
 
         col = col + 1;
         if col > 4 then 
@@ -58,11 +50,29 @@ function love.draw()
         local x = 180*col;
         local y = 20 + row * (screen.height - screen.height/5);
 
-        love.graphics.setColor(setPartColor(health));
-        love.graphics.rectangle("fill", x, y, 100, 100)
+        part.entity = Part:new(
+            name, part.health, x, y, 100, 100
+        )
+    end
+end
+
+function love.draw()
+    local miles = drive();
+
+    drawBG();
+
+
+    for name,part in pairs(Car) do
+        local health = getHealth(part, toInt(miles));
+        local healthPercentage = (health / part.lifespan) * 100;
+        part.entity:setHealth(health);
+        part.entity:setColor(healthPercentage);
+        part.entity:draw();
+        --[[
         love.graphics.setColor(colors.text);
         love.graphics.print(name, x, y)
         love.graphics.print(health, x, y+20)
+        ]]
     end
 end
 
@@ -95,7 +105,7 @@ function drive()
         day = day + 1;
 
         if day % 14 == 0 then
-            savings = savings + pay;
+            savings = savings + math.random(0,maxSaved);
         end
         miles = miles + math.random(0,dailyMileage);
 
@@ -158,10 +168,3 @@ function getHealth(part, miles)
     return health;
 end
 
--- SETS COLOR BASED ON HEALTH
-function setPartColor(health)
-    if      health == 0 then        return colors.health.dead
-    elseif  health < 40 then        return colors.health.low
-    elseif  health < 60 then        return colors.health.mid
-    else                            return colors.health.high end
-end
