@@ -1,12 +1,13 @@
 local Entity = require("entity");
 local Car = require("car");
 local Part = require("part");
+local Util = require("util")
 
 local time = 0;
 local day = 0;
 
 -- TODO: implement currency system
-local savings = 0; -- math.random(50,5000)  -- start with random amount of currency?
+local savings = 0;  -- math.random(50,5000)  -- start with random amount of currency?
 local maxSaved = 100;    -- can also randomize amount of currency that is set aside in savings
 
 local dailyMileage = 100;
@@ -59,7 +60,19 @@ function love.load()
 end
 
 function love.draw()
-    drawBG();
+    local debugBox = {
+        x = screen.width - 250,
+        y = screen.height/5 + 10,
+        w = 250,
+        h = 300,
+        pad = 10,
+        info = {
+            days_elapsed = day,
+            total_miles = totalMiles,
+            currency = savings
+        }
+    }
+    Util.drawBG(debugBox);
     local miles;
 
     if #criticalRepairs > 0 then 
@@ -68,14 +81,15 @@ function love.draw()
         love.graphics.setColor(colors.text);
         love.graphics.print("BROKE DOWN :(", 40, screen.height / 2)
         love.graphics.setFont(font);
-        miles = 0;
+        miles = drive(0);
     else
-        miles = drive();
+        miles = drive(dailyMileage);
     end
 
     for name,part in pairs(Car) do
-            local health = getHealth(part, toInt(miles));
+            local health = getHealth(part, Util.toInt(miles));
             local healthPercentage = (health / part.lifespan) * 100;
+
             part.entity:setHealth(health);
             part.entity:setColor(healthPercentage);
             part.entity:draw();
@@ -86,7 +100,7 @@ function love.draw()
 
             if part.health == 0 
                 and part.critical == true 
-                and indexOf(criticalRepairs, name) == nil 
+                and Util.indexOf(criticalRepairs, name) == nil 
                 then 
                     table.insert(criticalRepairs, name);
             end
@@ -94,16 +108,16 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button)
-    print(button)
     for name,part in pairs(Car) do
-        if inRegion(x, y, part.entity:getRegion()) then
+        if Util.inRegion(x, y, part.entity:getRegion()) then
             -- LEFT-CLICK: RESTORE HEALTH
             if button == 1 then
-                fixPart(part);                
+                fixPart(part, name);                
             -- RIGHT-CLICK: AUTOMATE/UN-AUTOMATE REPAIRS
             elseif button == 2 then
                 if part.autofix == false then part.autofix = true
                 else part.autofix = false end
+                
                 part.entity.autofix = part.autofix;
             end
         
@@ -111,52 +125,8 @@ function love.mousepressed(x, y, button)
     end
 end
 
-function inRegion(x, y, region)
-    if x < region.min.x or x > region.max.x then return false end
-    if y < region.min.y or y > region.max.y then return false end
-    return true;
-end
-
-function toInt(num)
-    return num - num % 1;
-end
-
-function drawBG()
-    love.graphics.setColor(colors.background)
-    love.graphics.rectangle("fill", 0, 0, screen.width, screen.height)
-
-    -- car icon (center):
-    love.graphics.setColor(colors.icon)
-    love.graphics.ellipse("fill", screen.width/2, screen.height/2, screen.width/5, screen.height/6)
-    
-    -- top row:
-    love.graphics.setColor(colors.info)
-    love.graphics.rectangle("fill", 0, 0, screen.width, screen.height/5)
-
-    -- bottom row:
-    love.graphics.setColor(colors.info)
-    love.graphics.rectangle("fill", 0, screen.height - screen.height/5, screen.width, screen.height/5)
-
-    -- DEBUG BOX:
-    local debugBox = {
-        x = screen.width - 250,
-        y = screen.height/5 + 10,
-        w = 250,
-        h = 300,
-        pad = 10;
-    }
-    love.graphics.setColor({0.07,0.07,0.07});
-    love.graphics.rectangle("fill", debugBox.x, debugBox.y, debugBox.w, debugBox.h)
-    love.graphics.setColor(colors.text);
-    love.graphics.printf("days elapsed: " .. tostring(day), 
-        debugBox.x + debugBox.pad, debugBox.y + debugBox.pad, debugBox.w - debugBox.pad);
-    love.graphics.printf("miles driven: " .. tostring(totalMiles), 
-        debugBox.x + debugBox.pad, debugBox.y + debugBox.pad * 3, debugBox.w - debugBox.pad);
-    
-end
-
 -- TIME HANDLING (pay day)
-function drive()
+function drive(maxMiles)
     local miles = 0;
     time = time + 1
     if time % 24 == 0 then
@@ -165,10 +135,10 @@ function drive()
         if day % 14 == 0 then
             savings = savings + math.random(0,maxSaved);
         end
-        miles = miles + math.random(0,dailyMileage);
 
-        -- DEBUG: 
-        print(day, miles, savings)
+        miles = miles + math.random(0,maxMiles);
+
+        -- DEBUG: print(day, miles, savings)
     end
     totalMiles = totalMiles + miles;
     return miles;
@@ -203,22 +173,14 @@ function getHealth(part, miles)
     return health;
 end
 
-function indexOf(tbl, value)
-    for i, v in ipairs(tbl) do
-        if v == value then
-            return i
-        end
-    end
-    return nil  
-end
-
+-- FIX PARTS
 function fixPart(part, name)
     -- TEMP: just restoring to original full health for now
     -- TODO: make part health restoration have a cost (currency)
 
     part.health = part.lifespan;
 
-    local i = indexOf(criticalRepairs, name);
+    local i = Util.indexOf(criticalRepairs, name);
     if i ~= nil then
         table.remove(criticalRepairs, i);
     end
