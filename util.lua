@@ -50,4 +50,15 @@ function U.drawBG(debugBox)
     end
 end
 
+-- returns a random key from table
+function U.randomFromTable(t)
+    local keys = {}
+    for k in pairs(t) do
+        table.insert(keys, k)
+    end
+
+    local randomKey = keys[math.random(1, #keys)]
+    return randomKey
+end
+
 return U;

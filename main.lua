@@ -14,7 +14,7 @@ local dailyIncome = 10
 
 -- Mileage tracking
 local dailyMileage = 100
-local totalMiles = 0
+local totalMiles = 50000
 
 -- Random event
 local eventCooldown = 0;
@@ -85,26 +85,38 @@ end
 
 -- Triggers a random event with rarity scaling
 function triggerEvent(r, mi)
-    --print("try event...")
+    local eventID;
+
+    -- events are more common over mileage threshold
     if(mi > 50000) then
-        if r > 0.999 then
-            -- ultra rare events
-            print("ultra rare event triggered! " .. mi .. " ".. r);
-            return true;
-        elseif r > 0.99 then
-            -- rare events
-            print("rare event triggered! " .. mi .. " ".. r);
-            return true;
-        else
-            -- standard events
-            print("event triggered! " .. mi .. " ".. r);
-            return true;
+        if r > 0.999 then       -- ultra rare event
+            eventID = "ultra_rare";
+        elseif r > 0.99 then    -- rare event
+            eventID = "rare";
+        else                    -- standard event
+            eventID = "standard";
         end
-    else 
-        if(r > 0.999) then
-            print("event triggered! " .. mi .. " ".. r);
-            return true;
+    else
+        if r > 0.9999 then     -- rare event
+            eventID = "rare";
+        elseif r > 0.999 then  -- standard event
+            eventID = "standard";
         end
+    end
+
+    if eventID then
+        -- pick a random part to have event happen to
+        local partID = Util.randomFromTable(Car);
+        local part = Car[partID];
+
+        -- reduce part health by rate specified in obj
+        part.health = part.health * part.event[eventID];
+
+        -- TODO: some kind of visual on screen to communicate random event taking place
+        -- TODO: grammars-based random text alerts for events? (stretch goal)
+
+        print(eventID .. " event triggered! " .. mi .. " ".. r .. " " .. partID);
+        return true;
     end
 
     return false;
