@@ -32,6 +32,11 @@ function U.drawBG(debugBox)
     love.graphics.setColor(colors.info)
     love.graphics.rectangle("fill", 0, 0, screen.width, screen.height/5)
 
+    -- instructions
+    love.graphics.print("click on a part to repair it", 20, screen.height/5 + 20);
+    love.graphics.print("right-click on a part to automate repairs", 20, screen.height/5 + 40);
+            
+
     -- bottom row:
     love.graphics.setColor(colors.info)
     love.graphics.rectangle("fill", 0, screen.height - screen.height/5, screen.width, screen.height/5)
