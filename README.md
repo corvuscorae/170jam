@@ -14,6 +14,8 @@ Can upgrade parts for more longevity, though at a higher cost. More specifically
 We are utilizing Love2d, which will be utilize to display and manage:  Basic car sprite with "health" separated into systems, Mileage counter that increases over time, Simple shop interface for repairs, Event system that triggers random problems, and an overview of the different car parts.
 
 ### TODO
+- debug driving
+    - currently drive() takes place on love.draw() which is based on frame rate, leading to inconsistencies between machines at runtime (days go by quicker, etc.)
 - improve balancing
     - implement shop, parts with varying prices
     - improve income system
