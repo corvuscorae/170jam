@@ -9,7 +9,7 @@ local time = 0
 local day = 0
 
 -- Currency system (renamed to dollars)
-local dollars = math.random(100, 200)
+local dollars = math.random(150, 200)
 local dailyIncome = 10
 
 -- Mileage tracking
