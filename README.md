@@ -15,5 +15,8 @@ We are utilizing Love2d, which will be utilize to display and manage:  Basic car
 
 ### TODO
 - improve balancing
+    - implement shop, parts with varying prices
+    - improve income system
+    - add part-specific random events (like if headlights are out, you might get pulled over)
 - graphical indications when events are triggered
-- pull all part handling into the part entity
+- pull all part handling into the part entity (refactor)
