@@ -24,7 +24,7 @@ local criticalRepairs = {}
 
 -- Calculates the repair cost based on part attributes and health lost (scaled up)
 function getPartCost(part)
-    local base = 20  -- increased base cost
+    local base = part.baseRepairCost;  -- increased base cost
     if part.critical then base = base * 3 end  -- increased multiplier
     if part.exponential then base = base * 2 end  -- increased multiplier
     local lostHealth = part.lifespan - part.health
@@ -53,18 +53,20 @@ function drive(maxMiles)
     if time % 24 == 0 then
         day = day + 1
 
-        -- Give passive income every 7 days
-        if day % 7 == 0 then
-            dollars = dollars + (dailyIncome + math.floor(totalMiles * 0.01))
-        end
-
-        -- Random events
         if #criticalRepairs == 0 then
+            miles = miles + math.random(0, maxMiles) 
+
+            -- Random events
             tryEvent();
         end
-                
 
-        miles = miles + math.random(0, maxMiles)
+        -- Give passive income every 7 days
+        if day % 7 == 0 then
+            local mod =  #criticalRepairs > 0 and 2 or 1
+            local payday = ((dailyIncome / mod) * 7) + math.floor(0.1 * miles);     -- make less money when not driving
+            dollars = dollars + payday;
+        end
+
     end
     totalMiles = totalMiles + miles
     return miles
