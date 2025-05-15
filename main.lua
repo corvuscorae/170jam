@@ -16,6 +16,9 @@ local dailyIncome = 10
 local dailyMileage = 100
 local totalMiles = 0
 
+-- Random event
+local eventCooldown = 0;
+
 -- Parts that have critically failed
 local criticalRepairs = {}
 
@@ -37,13 +40,16 @@ function fixPart(part, name)
         part.health = part.lifespan
         local i = Util.indexOf(criticalRepairs, name)
         if i ~= nil then table.remove(criticalRepairs, i) end
+    else
+        print("!! insufficient funds to repair " .. name)
     end
+
 end
 
 -- Simulates a day of driving, grants passive income
 function drive(maxMiles)
     local miles = 0
-    time = time + 1
+    time = time + 4 -- CHANGE BACK TO 1
     if time % 24 == 0 then
         day = day + 1
 
@@ -52,10 +58,56 @@ function drive(maxMiles)
             dollars = dollars + (dailyIncome + math.floor(totalMiles * 0.01))
         end
 
+        -- Random events
+        if #criticalRepairs == 0 then
+            tryEvent();
+        end
+                
+
         miles = miles + math.random(0, maxMiles)
     end
     totalMiles = totalMiles + miles
     return miles
+end
+
+-- Decrement event cooldown and roll random to try to trigger an event
+function tryEvent()
+    eventCooldown = eventCooldown - 1;
+    if eventCooldown <= 0 then
+        local rand = math.random();
+        if rand > 0.9 then
+            if triggerEvent(rand, totalMiles) then
+                eventCooldown = math.random(100,500);
+            end
+        end
+    end
+end
+
+-- Triggers a random event with rarity scaling
+function triggerEvent(r, mi)
+    --print("try event...")
+    if(mi > 50000) then
+        if r > 0.999 then
+            -- ultra rare events
+            print("ultra rare event triggered! " .. mi .. " ".. r);
+            return true;
+        elseif r > 0.99 then
+            -- rare events
+            print("rare event triggered! " .. mi .. " ".. r);
+            return true;
+        else
+            -- standard events
+            print("event triggered! " .. mi .. " ".. r);
+            return true;
+        end
+    else 
+        if(r > 0.999) then
+            print("event triggered! " .. mi .. " ".. r);
+            return true;
+        end
+    end
+
+    return false;
 end
 
 -- Initializes the game window and car part entities
