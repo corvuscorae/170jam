@@ -9,12 +9,12 @@ local time = 0
 local day = 0
 
 -- Currency system (renamed to dollars)
-local dollars = math.random(500, 1000)
+local dollars = math.random(100, 200)
 local dailyIncome = 10
 
 -- Mileage tracking
 local dailyMileage = 100
-local totalMiles = 50000
+local totalMiles = math.random(0, 50000)
 
 -- Random event
 local eventCooldown = 0;
@@ -41,7 +41,7 @@ function fixPart(part, name)
         local i = Util.indexOf(criticalRepairs, name)
         if i ~= nil then table.remove(criticalRepairs, i) end
     else
-        print("!! insufficient funds to repair " .. name)
+        print("!! insufficient funds to repair " .. name .. "; cost: " .. cost)
     end
 
 end
@@ -182,7 +182,7 @@ function love.draw()
         local healthPct = (health / part.lifespan) * 100
         part.entity:setHealth(health)
         part.entity:setColor(healthPct)
-        part.entity:draw()
+        part.entity:draw(getPartCost(part));
 
         if part.autofix and part.health < 60 then
             fixPart(part, name)

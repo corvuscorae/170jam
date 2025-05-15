@@ -54,7 +54,7 @@ function Part:getRegion()
     }
 end
 
-function Part:draw()
+function Part:draw(cost)
     -- Set color and draw rectangle
     love.graphics.setColor(self.color)
     love.graphics.rectangle("fill", self.x, self.y, 
@@ -64,8 +64,14 @@ function Part:draw()
     love.graphics.setColor(colors.text)
     love.graphics.print(self.name, self.x, self.y);
 
-    -- debug text
+    -- Debug text
+    -- *health
     love.graphics.print(self.health, self.x, self.y + 20);
+
+    -- *repair cost (passed in as param for now)
+    love.graphics.print("$" .. tostring(cost), self.x, self.y + 50);
+
+    -- *autofix toggle
     if self.autofix == true then
         love.graphics.print("auto fix", self.x, self.y + self.height - 20);
     end
